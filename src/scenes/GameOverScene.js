@@ -115,7 +115,7 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.start('MenuScene');
     });
     
-    // Save points to Play.fun (auto-login if needed)
-    savePoints(gameState.score);
+    // Save points to Play.fun (flushes accumulated points to server)
+    savePoints();
   }
 }

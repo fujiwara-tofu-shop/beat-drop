@@ -70,39 +70,30 @@ export function initPlayFun(onReady) {
   }
 }
 
-// Call during gameplay to update display
+// Call during gameplay as points are earned
 export function addPoints(amount) {
   if (!sdk || !initialized) return;
   
   sessionPoints += amount;
   
-  // Only show improvement over best score
-  if (sessionPoints > bestScore) {
-    try {
-      sdk.addPoints(amount);
-    } catch (e) {}
+  try {
+    sdk.addPoints(amount);
+  } catch (e) {
+    console.warn('[PlayFun] addPoints failed:', e);
   }
 }
 
-// Call at end of game session
-export async function savePoints(finalScore) {
+// Call at end of game session to flush points to server
+export async function savePoints() {
   if (!sdk || !initialized) {
     console.log('[PlayFun] SDK not ready, cannot save');
     return false;
   }
 
   try {
-    // Only save if we improved
-    if (finalScore > bestScore) {
-      const improvement = finalScore - bestScore;
-      console.log('[PlayFun] Saving improvement:', improvement);
-      await sdk.savePoints(improvement);
-      bestScore = finalScore;
-      return true;
-    } else {
-      console.log('[PlayFun] No improvement, not saving');
-      return false;
-    }
+    console.log('[PlayFun] Saving session points:', sessionPoints);
+    await sdk.savePoints();
+    return true;
   } catch (e) {
     console.warn('[PlayFun] Save failed:', e);
     return false;
