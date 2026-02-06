@@ -13,7 +13,11 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
-    height: GAME_HEIGHT
+    height: GAME_HEIGHT,
+    expandParent: true
+  },
+  dom: {
+    createContainer: false
   },
   input: {
     activePointers: 3,
