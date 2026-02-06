@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import * as C from '../core/Constants.js';
 import { gameState } from '../core/GameState.js';
+import { stopMusic } from '../audio/MusicManager.js';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {

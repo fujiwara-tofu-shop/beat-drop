@@ -20,37 +20,35 @@ export function startGameplayBGM() {
   
   setTimeout(() => {
     try {
-      // Chinese synthwave - dreamy, slow
+      // Chinese synthwave - driving but ambient
       currentMusic = stack(
-        // Deep sub bass - pentatonic
-        note('<a1 ~ c2 ~ d2 ~ e2 ~>')
+        // Sub bass pulse
+        note('<a1 ~ a1 ~> <a1 ~ c2 ~>')
           .s('sine')
-          .gain(0.2)
-          .lpf(120)
-          .decay(0.5)
-          .sustain(0.2)
-          .slow(2),
-        // Warm pad - Am pentatonic chord
-        note('<a2,c3,e3> <a2,d3,e3>')
+          .gain(0.22)
+          .lpf(130)
+          .decay(0.4)
+          .sustain(0.15),
+        // Warm pad
+        note('<a2,c3,e3>')
           .s('triangle')
-          .gain(0.08)
-          .attack(0.8)
-          .decay(3)
-          .sustain(0.15)
-          .lpf(900)
-          .room(0.5)
-          .slow(4),
-        // Subtle arp - very quiet
-        note('a4 c5 e5 a5')
+          .gain(0.06)
+          .attack(0.6)
+          .decay(2)
+          .sustain(0.1)
+          .lpf(800)
+          .room(0.4)
+          .slow(2),
+        // Gentle arp texture
+        note('a3 c4 e4 a4')
           .s('sine')
-          .gain(0.03)
-          .decay(0.2)
+          .gain(0.025)
+          .decay(0.15)
           .sustain(0)
-          .delay(0.3)
-          .delaytime(0.5)
-          .lpf(1500)
-          .fast(0.5)
-      ).cpm(85).play();
+          .delay(0.25)
+          .delaytime(0.3)
+          .lpf(1200)
+      ).cpm(100).play();
     } catch (e) {
       console.warn('[Music] BGM error:', e);
     }

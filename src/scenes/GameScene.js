@@ -23,31 +23,38 @@ export class GameScene extends Phaser.Scene {
     this.setupInput();
     
     this.notes = this.add.group();
+    this.patternIndex = 0;
+    this.phase = 0; // 0=intro, 1=main, 2=intense, 3=outro
+    
     this.startNoteSpawner();
     startGameplayBGM();
     
-    // 90 second game
-    this.gameTime = 90;
+    // Game timer
+    this.gameTime = C.GAME_DURATION;
     this.time.addEvent({
       delay: 1000,
       callback: () => {
         this.gameTime--;
         this.timerText.setText(this.gameTime.toString());
+        
+        // Phase progression
+        if (this.gameTime === 45) this.phase = 1;
+        if (this.gameTime === 25) this.phase = 2;
+        if (this.gameTime === 10) this.phase = 3;
+        
         if (this.gameTime <= 0) {
           this.endGame();
         }
       },
-      repeat: 89
+      repeat: C.GAME_DURATION - 1
     });
   }
 
   createBackground() {
-    // Chinese synthwave gradient
     const bg = this.add.graphics();
     bg.fillGradientStyle(C.COLORS.BG_TOP, C.COLORS.BG_TOP, C.COLORS.BG_BOTTOM, C.COLORS.BG_BOTTOM, 1);
     bg.fillRect(0, 0, C.GAME_WIDTH, C.GAME_HEIGHT);
     
-    // Subtle vertical lines
     for (let i = 1; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH;
       const line = this.add.graphics();
@@ -55,7 +62,6 @@ export class GameScene extends Phaser.Scene {
       line.lineBetween(x, 0, x, C.GAME_HEIGHT);
     }
     
-    // Decorative Chinese characters at top
     this.add.text(C.GAME_WIDTH / 2, 25, '節奏', {
       fontFamily: 'Georgia, serif',
       fontSize: '20px',
@@ -64,19 +70,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   createLanes() {
-    // Lane labels
     for (let i = 0; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH + C.LANE_WIDTH / 2;
       const color = C.LANE_COLORS[i];
       
-      // Chinese name
       this.add.text(x, 55, C.LANE_NAMES[i], {
         fontFamily: 'Georgia, serif',
         fontSize: '28px',
         color: color
       }).setOrigin(0.5);
       
-      // English name
       this.add.text(x, 85, C.LANE_NAMES_EN[i], {
         fontFamily: 'Arial, sans-serif',
         fontSize: '11px',
@@ -86,33 +89,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   createHitZone() {
-    // Glowing hit zone
     const hitZone = this.add.graphics();
-    
-    // Outer glow
     hitZone.fillStyle(C.COLORS.HIT_ZONE, 0.6);
     hitZone.fillRect(0, C.HIT_ZONE_Y - C.HIT_ZONE_HEIGHT / 2, C.GAME_WIDTH, C.HIT_ZONE_HEIGHT);
-    
-    // Center line with glow
     hitZone.lineStyle(4, C.COLORS.HIT_ZONE_GLOW, 0.8);
     hitZone.lineBetween(0, C.HIT_ZONE_Y, C.GAME_WIDTH, C.HIT_ZONE_Y);
     
-    // Lane targets - larger, more visible
     for (let i = 0; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH + C.LANE_WIDTH / 2;
       const color = Phaser.Display.Color.HexStringToColor(C.LANE_COLORS[i]).color;
       
-      // Outer ring
       const ring = this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS + 8, 0x000000, 0);
       ring.setStrokeStyle(3, color, 0.4);
-      
-      // Inner glow
       this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS, color, 0.15);
     }
   }
 
   createUI() {
-    // Score - right side
     this.add.text(C.GAME_WIDTH - 25, 30, '分數', {
       fontFamily: 'Georgia, serif',
       fontSize: '14px',
@@ -125,21 +118,18 @@ export class GameScene extends Phaser.Scene {
       color: '#ffd93d'
     }).setOrigin(1, 0);
     
-    // Combo - center bottom
     this.comboText = this.add.text(C.GAME_WIDTH / 2, C.GAME_HEIGHT - 60, '', {
       fontFamily: C.FONT_FAMILY,
       fontSize: '28px',
       color: '#00d4aa'
     }).setOrigin(0.5);
     
-    // Timer - left side
-    this.timerText = this.add.text(25, 50, '90', {
+    this.timerText = this.add.text(25, 50, C.GAME_DURATION.toString(), {
       fontFamily: C.FONT_FAMILY,
       fontSize: '28px',
       color: '#666666'
     });
     
-    // Rating popup
     this.ratingText = this.add.text(C.GAME_WIDTH / 2, C.HIT_ZONE_Y - 100, '', {
       fontFamily: C.FONT_FAMILY,
       fontSize: '32px',
@@ -148,7 +138,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   setupInput() {
-    // Touch/click
     this.input.on('pointerdown', (pointer) => {
       const lane = Math.floor(pointer.x / C.LANE_WIDTH);
       if (lane >= 0 && lane < C.LANE_COUNT) {
@@ -157,12 +146,9 @@ export class GameScene extends Phaser.Scene {
       }
     });
     
-    // Keyboard - simplified to 3 keys
     this.input.keyboard.on('keydown-A', () => { this.checkHit(0); this.flashLane(0); });
     this.input.keyboard.on('keydown-S', () => { this.checkHit(1); this.flashLane(1); });
     this.input.keyboard.on('keydown-D', () => { this.checkHit(2); this.flashLane(2); });
-    
-    // Alternative keys
     this.input.keyboard.on('keydown-J', () => { this.checkHit(0); this.flashLane(0); });
     this.input.keyboard.on('keydown-K', () => { this.checkHit(1); this.flashLane(1); });
     this.input.keyboard.on('keydown-L', () => { this.checkHit(2); this.flashLane(2); });
@@ -183,23 +169,51 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  startNoteSpawner() {
-    // Simpler, sparser pattern - one note at a time mostly
-    const pattern = [
-      [0], [], [1], [],      // drum, rest, cymbal, rest
-      [2], [], [0], [],      // zheng, rest, drum, rest
-      [1], [], [2], [],      // cymbal, rest, zheng, rest
-      [0], [2], [1], [],     // drum, zheng, cymbal, rest
+  getPattern() {
+    // Different patterns based on phase
+    const intro = [
+      [0], [], [1], [],
+      [2], [], [0], [],
     ];
     
-    let patternIndex = 0;
+    const main = [
+      [0], [2], [1], [],
+      [0], [], [1], [2],
+      [2], [0], [1], [],
+      [0, 2], [], [1], [],
+    ];
     
+    const intense = [
+      [0], [1], [2], [0],
+      [1], [2], [0, 1], [],
+      [2], [0], [1, 2], [0],
+      [0, 2], [1], [0], [1, 2],
+    ];
+    
+    const outro = [
+      [0, 1, 2], [], [], [],
+      [0], [], [1], [],
+      [2], [], [], [],
+      [0, 1, 2], [], [], [],
+    ];
+    
+    switch (this.phase) {
+      case 0: return intro;
+      case 1: return main;
+      case 2: return intense;
+      case 3: return outro;
+      default: return main;
+    }
+  }
+
+  startNoteSpawner() {
     this.spawnTimer = this.time.addEvent({
-      delay: C.BEAT_MS, // Quarter notes - slower
+      delay: C.BEAT_MS / 2, // 8th notes
       callback: () => {
-        const lanes = pattern[patternIndex % pattern.length];
+        const pattern = this.getPattern();
+        const lanes = pattern[this.patternIndex % pattern.length];
         lanes.forEach(lane => this.spawnNote(lane));
-        patternIndex++;
+        this.patternIndex++;
       },
       loop: true
     });
@@ -209,7 +223,6 @@ export class GameScene extends Phaser.Scene {
     const x = lane * C.LANE_WIDTH + C.LANE_WIDTH / 2;
     const color = Phaser.Display.Color.HexStringToColor(C.LANE_COLORS[lane]).color;
     
-    // Prettier note with glow
     const glow = this.add.circle(x, C.SPAWN_Y, C.NOTE_RADIUS + 5, color, 0.3);
     const note = this.add.circle(x, C.SPAWN_Y, C.NOTE_RADIUS, color, 0.9);
     note.setStrokeStyle(2, 0xffffff, 0.6);
@@ -266,7 +279,6 @@ export class GameScene extends Phaser.Scene {
       if (glow) glow.destroy();
       closestNote.destroy();
     } else {
-      // No note nearby - still play sound quietly
       playLaneSound(lane);
     }
   }
@@ -312,13 +324,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // Update timer color as time runs out
+    if (this.gameTime <= 10) {
+      this.timerText.setColor('#ff6b9d');
+    }
+    
     this.notes.getChildren().forEach(note => {
       const glow = note.getData('glow');
       
       note.y += (C.NOTE_SPEED * delta) / 1000;
       if (glow) glow.y = note.y;
       
-      // Miss check
       if (note.y > C.HIT_ZONE_Y + C.TIMING.MISS && !note.getData('hit')) {
         note.setData('hit', true);
         gameState.addMiss();
@@ -347,7 +363,11 @@ export class GameScene extends Phaser.Scene {
     gameState.isPlaying = false;
     stopMusic();
     if (this.spawnTimer) this.spawnTimer.remove();
-    this.scene.start('GameOverScene');
+    
+    // Brief pause then show results
+    this.time.delayedCall(500, () => {
+      this.scene.start('GameOverScene');
+    });
   }
 
   shutdown() {
