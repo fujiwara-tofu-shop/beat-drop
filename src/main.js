@@ -31,9 +31,8 @@ const config = {
   scene: [MenuScene, GameScene, GameOverScene]
 };
 
-window.game = new Phaser.Game(config);
-
-// Initialize Play.fun after a short delay to ensure SDK is loaded
-setTimeout(() => {
-  window.game.playFun = initPlayFun();
-}, 500);
+// Initialize Play.fun SDK, then start game
+initPlayFun(() => {
+  console.log('[Game] Starting Phaser');
+  window.game = new Phaser.Game(config);
+});

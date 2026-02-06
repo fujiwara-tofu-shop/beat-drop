@@ -4,6 +4,7 @@ import { eventBus, Events } from '../core/EventBus.js';
 import { gameState } from '../core/GameState.js';
 import { playLaneSound, playMiss } from '../audio/SoundManager.js';
 import { startGameplayBGM, stopMusic } from '../audio/MusicManager.js';
+import { addPoints, resetSession } from '../playfun.js';
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -15,6 +16,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     gameState.reset();
     gameState.isPlaying = true;
+    resetSession(); // Reset Play.fun session points
     
     this.createBackground();
     this.createLanes();
@@ -270,6 +272,7 @@ export class GameScene extends Phaser.Scene {
       points += comboBonus;
       
       gameState.addHit(rating === '完美' ? 'PERFECT' : rating === '太棒' ? 'GREAT' : 'GOOD', points);
+      addPoints(points); // Track points for Play.fun
       this.updateUI(rating, color);
       
       playLaneSound(lane);

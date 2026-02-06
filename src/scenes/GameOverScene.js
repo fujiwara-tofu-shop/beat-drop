@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import * as C from '../core/Constants.js';
 import { gameState } from '../core/GameState.js';
 import { stopMusic } from '../audio/MusicManager.js';
+import { savePoints } from '../playfun.js';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
@@ -114,9 +115,7 @@ export class GameOverScene extends Phaser.Scene {
       this.scene.start('MenuScene');
     });
     
-    // Report to play.fun
-    if (window.game?.playFun) {
-      window.game.playFun.addPoints(gameState.score);
-    }
+    // Save points to Play.fun (auto-login if needed)
+    savePoints(gameState.score);
   }
 }
