@@ -13,7 +13,20 @@ const config = {
   backgroundColor: '#0a0a0f',
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    min: {
+      width: 270,
+      height: 480
+    },
+    max: {
+      width: 1080,
+      height: 1920
+    }
+  },
+  input: {
+    activePointers: 3
   },
   scene: [MenuScene, GameScene, GameOverScene]
 };
