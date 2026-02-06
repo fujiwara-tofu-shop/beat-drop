@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="x-ogp-key" content="">
+  <title>Beat Drop - Rhythm Game</title>
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Beat Drop">
+  <meta property="og:description" content="Tap the rhythm. Make the beat. Earn points.">
+  <meta property="og:type" content="website">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0f;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #game-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #game-container canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <script src="https://sdk.play.fun/latest" defer></script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
