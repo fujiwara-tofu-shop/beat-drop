@@ -7,26 +7,19 @@ import { initPlayFun } from './playfun.js';
 
 const config = {
   type: Phaser.AUTO,
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
   parent: 'game-container',
   backgroundColor: '#0a0a0f',
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-    min: {
-      width: 270,
-      height: 480
-    },
-    max: {
-      width: 1080,
-      height: 1920
-    }
+    height: GAME_HEIGHT
   },
   input: {
-    activePointers: 3
+    activePointers: 3,
+    touch: {
+      capture: true
+    }
   },
   scene: [MenuScene, GameScene, GameOverScene]
 };
