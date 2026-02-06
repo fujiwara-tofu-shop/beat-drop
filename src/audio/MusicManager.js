@@ -20,25 +20,37 @@ export function startGameplayBGM() {
   
   setTimeout(() => {
     try {
-      // Subtle backing beat - players add the main hits
+      // Chinese synthwave - dreamy, slow
       currentMusic = stack(
-        // Sub bass pulse
-        note('<c1 c1 c1 g0>')
+        // Deep sub bass - pentatonic
+        note('<a1 ~ c2 ~ d2 ~ e2 ~>')
           .s('sine')
-          .gain(0.25)
-          .lpf(150)
-          .decay(0.3)
-          .sustain(0.1),
-        // Very quiet pad
-        note('<c3,e3,g3>')
+          .gain(0.2)
+          .lpf(120)
+          .decay(0.5)
+          .sustain(0.2)
+          .slow(2),
+        // Warm pad - Am pentatonic chord
+        note('<a2,c3,e3> <a2,d3,e3>')
           .s('triangle')
-          .gain(0.06)
-          .attack(0.5)
-          .decay(2)
-          .sustain(0.1)
-          .lpf(800)
-          .slow(4)
-      ).cpm(120).play();
+          .gain(0.08)
+          .attack(0.8)
+          .decay(3)
+          .sustain(0.15)
+          .lpf(900)
+          .room(0.5)
+          .slow(4),
+        // Subtle arp - very quiet
+        note('a4 c5 e5 a5')
+          .s('sine')
+          .gain(0.03)
+          .decay(0.2)
+          .sustain(0)
+          .delay(0.3)
+          .delaytime(0.5)
+          .lpf(1500)
+          .fast(0.5)
+      ).cpm(85).play();
     } catch (e) {
       console.warn('[Music] BGM error:', e);
     }
@@ -52,14 +64,25 @@ export function startMenuBGM() {
   setTimeout(() => {
     try {
       currentMusic = stack(
-        note('<c3,e3,g3> <a2,c3,e3>')
+        // Ethereal pad
+        note('<a2,c3,e3,a3>')
           .s('sine')
-          .gain(0.08)
-          .attack(0.8)
-          .decay(2)
+          .gain(0.1)
+          .attack(1.5)
+          .decay(4)
           .sustain(0.2)
-          .lpf(1200)
-          .room(0.5)
+          .lpf(1000)
+          .room(0.6)
+          .slow(4),
+        // Gentle shimmer
+        note('~ a4 ~ e4 ~ c5 ~ ~')
+          .s('triangle')
+          .gain(0.04)
+          .decay(0.3)
+          .sustain(0)
+          .delay(0.4)
+          .delaytime(0.6)
+          .lpf(2000)
           .slow(2)
       ).cpm(60).play();
     } catch (e) {

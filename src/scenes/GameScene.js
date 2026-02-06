@@ -10,7 +10,6 @@ export class GameScene extends Phaser.Scene {
     super('GameScene');
     this.notes = null;
     this.spawnTimer = null;
-    this.beatIndex = 0;
   }
 
   create() {
@@ -23,17 +22,12 @@ export class GameScene extends Phaser.Scene {
     this.createUI();
     this.setupInput();
     
-    // Note pool
     this.notes = this.add.group();
-    
-    // Start spawning notes
     this.startNoteSpawner();
-    
-    // Start subtle BGM
     startGameplayBGM();
     
-    // Game timer (60 seconds)
-    this.gameTime = 60;
+    // 90 second game
+    this.gameTime = 90;
     this.time.addEvent({
       delay: 1000,
       callback: () => {
@@ -43,119 +37,165 @@ export class GameScene extends Phaser.Scene {
           this.endGame();
         }
       },
-      repeat: 59
+      repeat: 89
     });
   }
 
   createBackground() {
-    // Dark gradient background
+    // Chinese synthwave gradient
     const bg = this.add.graphics();
-    bg.fillGradientStyle(0x0a0a1a, 0x0a0a1a, 0x1a0a2e, 0x1a0a2e, 1);
+    bg.fillGradientStyle(C.COLORS.BG_TOP, C.COLORS.BG_TOP, C.COLORS.BG_BOTTOM, C.COLORS.BG_BOTTOM, 1);
     bg.fillRect(0, 0, C.GAME_WIDTH, C.GAME_HEIGHT);
     
-    // Lane separators
+    // Subtle vertical lines
     for (let i = 1; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH;
       const line = this.add.graphics();
-      line.lineStyle(2, 0x2a2a3e, 0.5);
+      line.lineStyle(1, 0xffd93d, 0.15);
       line.lineBetween(x, 0, x, C.GAME_HEIGHT);
     }
+    
+    // Decorative Chinese characters at top
+    this.add.text(C.GAME_WIDTH / 2, 25, '節奏', {
+      fontFamily: 'Georgia, serif',
+      fontSize: '20px',
+      color: '#ffd93d'
+    }).setOrigin(0.5).setAlpha(0.3);
   }
 
   createLanes() {
-    // Lane labels at top
+    // Lane labels
     for (let i = 0; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH + C.LANE_WIDTH / 2;
       const color = C.LANE_COLORS[i];
       
-      this.add.text(x, 30, C.LANE_NAMES[i], {
-        fontFamily: C.FONT_FAMILY,
-        fontSize: '14px',
+      // Chinese name
+      this.add.text(x, 55, C.LANE_NAMES[i], {
+        fontFamily: 'Georgia, serif',
+        fontSize: '28px',
         color: color
       }).setOrigin(0.5);
+      
+      // English name
+      this.add.text(x, 85, C.LANE_NAMES_EN[i], {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '11px',
+        color: color
+      }).setOrigin(0.5).setAlpha(0.6);
     }
   }
 
   createHitZone() {
-    // Hit zone bar
+    // Glowing hit zone
     const hitZone = this.add.graphics();
-    hitZone.fillStyle(C.COLORS.HIT_ZONE, 0.8);
+    
+    // Outer glow
+    hitZone.fillStyle(C.COLORS.HIT_ZONE, 0.6);
     hitZone.fillRect(0, C.HIT_ZONE_Y - C.HIT_ZONE_HEIGHT / 2, C.GAME_WIDTH, C.HIT_ZONE_HEIGHT);
     
-    // Glow line
-    hitZone.lineStyle(3, C.COLORS.HIT_ZONE_GLOW, 1);
+    // Center line with glow
+    hitZone.lineStyle(4, C.COLORS.HIT_ZONE_GLOW, 0.8);
     hitZone.lineBetween(0, C.HIT_ZONE_Y, C.GAME_WIDTH, C.HIT_ZONE_Y);
     
-    // Lane hit targets
+    // Lane targets - larger, more visible
     for (let i = 0; i < C.LANE_COUNT; i++) {
       const x = i * C.LANE_WIDTH + C.LANE_WIDTH / 2;
       const color = Phaser.Display.Color.HexStringToColor(C.LANE_COLORS[i]).color;
       
-      const target = this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS + 5, color, 0.2);
-      target.setStrokeStyle(2, color, 0.6);
+      // Outer ring
+      const ring = this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS + 8, 0x000000, 0);
+      ring.setStrokeStyle(3, color, 0.4);
+      
+      // Inner glow
+      this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS, color, 0.15);
     }
   }
 
   createUI() {
-    // Score
-    this.scoreText = this.add.text(20, C.GAME_HEIGHT - 50, '0', {
-      fontFamily: C.FONT_FAMILY,
-      fontSize: '32px',
-      color: '#ffffff'
-    });
-    
-    // Combo
-    this.comboText = this.add.text(C.GAME_WIDTH / 2, C.GAME_HEIGHT - 80, '', {
-      fontFamily: C.FONT_FAMILY,
-      fontSize: '24px',
-      color: '#ffcc00'
-    }).setOrigin(0.5);
-    
-    // Timer
-    this.timerText = this.add.text(C.GAME_WIDTH - 20, C.GAME_HEIGHT - 50, '60', {
-      fontFamily: C.FONT_FAMILY,
-      fontSize: '32px',
+    // Score - right side
+    this.add.text(C.GAME_WIDTH - 25, 30, '分數', {
+      fontFamily: 'Georgia, serif',
+      fontSize: '14px',
       color: '#888888'
     }).setOrigin(1, 0);
     
-    // Rating popup
-    this.ratingText = this.add.text(C.GAME_WIDTH / 2, C.HIT_ZONE_Y - 80, '', {
+    this.scoreText = this.add.text(C.GAME_WIDTH - 25, 50, '0', {
+      fontFamily: C.FONT_FAMILY,
+      fontSize: '36px',
+      color: '#ffd93d'
+    }).setOrigin(1, 0);
+    
+    // Combo - center bottom
+    this.comboText = this.add.text(C.GAME_WIDTH / 2, C.GAME_HEIGHT - 60, '', {
       fontFamily: C.FONT_FAMILY,
       fontSize: '28px',
-      color: '#00ff88'
+      color: '#00d4aa'
+    }).setOrigin(0.5);
+    
+    // Timer - left side
+    this.timerText = this.add.text(25, 50, '90', {
+      fontFamily: C.FONT_FAMILY,
+      fontSize: '28px',
+      color: '#666666'
+    });
+    
+    // Rating popup
+    this.ratingText = this.add.text(C.GAME_WIDTH / 2, C.HIT_ZONE_Y - 100, '', {
+      fontFamily: C.FONT_FAMILY,
+      fontSize: '32px',
+      color: '#ff6b9d'
     }).setOrigin(0.5).setAlpha(0);
   }
 
   setupInput() {
-    // Touch/click input - detect which lane
+    // Touch/click
     this.input.on('pointerdown', (pointer) => {
       const lane = Math.floor(pointer.x / C.LANE_WIDTH);
       if (lane >= 0 && lane < C.LANE_COUNT) {
         this.checkHit(lane);
+        this.flashLane(lane);
       }
     });
     
-    // Keyboard input
-    this.input.keyboard.on('keydown-A', () => this.checkHit(0));
-    this.input.keyboard.on('keydown-S', () => this.checkHit(1));
-    this.input.keyboard.on('keydown-D', () => this.checkHit(2));
-    this.input.keyboard.on('keydown-F', () => this.checkHit(3));
+    // Keyboard - simplified to 3 keys
+    this.input.keyboard.on('keydown-A', () => { this.checkHit(0); this.flashLane(0); });
+    this.input.keyboard.on('keydown-S', () => { this.checkHit(1); this.flashLane(1); });
+    this.input.keyboard.on('keydown-D', () => { this.checkHit(2); this.flashLane(2); });
+    
+    // Alternative keys
+    this.input.keyboard.on('keydown-J', () => { this.checkHit(0); this.flashLane(0); });
+    this.input.keyboard.on('keydown-K', () => { this.checkHit(1); this.flashLane(1); });
+    this.input.keyboard.on('keydown-L', () => { this.checkHit(2); this.flashLane(2); });
+  }
+
+  flashLane(lane) {
+    const x = lane * C.LANE_WIDTH + C.LANE_WIDTH / 2;
+    const color = Phaser.Display.Color.HexStringToColor(C.LANE_COLORS[lane]).color;
+    
+    const flash = this.add.circle(x, C.HIT_ZONE_Y, C.NOTE_RADIUS + 20, color, 0.4);
+    this.tweens.add({
+      targets: flash,
+      alpha: 0,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      duration: 150,
+      onComplete: () => flash.destroy()
+    });
   }
 
   startNoteSpawner() {
-    // Predefined pattern for 60 seconds at 120 BPM
-    // Simple pattern that repeats
+    // Simpler, sparser pattern - one note at a time mostly
     const pattern = [
-      [0], [2], [1], [2],           // kick hat snare hat
-      [0], [2], [1, 3], [2],        // kick hat snare+synth hat
-      [0], [2, 3], [1], [2],        // kick hat+synth snare hat
-      [0, 3], [2], [1], [2, 3]      // kick+synth hat snare hat+synth
+      [0], [], [1], [],      // drum, rest, cymbal, rest
+      [2], [], [0], [],      // zheng, rest, drum, rest
+      [1], [], [2], [],      // cymbal, rest, zheng, rest
+      [0], [2], [1], [],     // drum, zheng, cymbal, rest
     ];
     
     let patternIndex = 0;
     
     this.spawnTimer = this.time.addEvent({
-      delay: C.BEAT_MS / 2, // 8th notes at 120 BPM
+      delay: C.BEAT_MS, // Quarter notes - slower
       callback: () => {
         const lanes = pattern[patternIndex % pattern.length];
         lanes.forEach(lane => this.spawnNote(lane));
@@ -169,16 +209,19 @@ export class GameScene extends Phaser.Scene {
     const x = lane * C.LANE_WIDTH + C.LANE_WIDTH / 2;
     const color = Phaser.Display.Color.HexStringToColor(C.LANE_COLORS[lane]).color;
     
+    // Prettier note with glow
+    const glow = this.add.circle(x, C.SPAWN_Y, C.NOTE_RADIUS + 5, color, 0.3);
     const note = this.add.circle(x, C.SPAWN_Y, C.NOTE_RADIUS, color, 0.9);
-    note.setStrokeStyle(3, 0xffffff, 0.8);
+    note.setStrokeStyle(2, 0xffffff, 0.6);
+    
     note.setData('lane', lane);
     note.setData('hit', false);
+    note.setData('glow', glow);
     
     this.notes.add(note);
   }
 
   checkHit(lane) {
-    // Find closest note in this lane
     let closestNote = null;
     let closestDist = Infinity;
     
@@ -193,112 +236,108 @@ export class GameScene extends Phaser.Scene {
     });
     
     if (closestNote && closestDist < C.TIMING.MISS) {
-      // Hit!
       closestNote.setData('hit', true);
       
       let rating, points, color;
       if (closestDist < C.TIMING.PERFECT) {
-        rating = 'PERFECT';
+        rating = '完美';
         points = C.SCORE.PERFECT;
         color = C.COLORS.PERFECT;
       } else if (closestDist < C.TIMING.GREAT) {
-        rating = 'GREAT';
+        rating = '太棒';
         points = C.SCORE.GREAT;
         color = C.COLORS.GREAT;
-      } else if (closestDist < C.TIMING.GOOD) {
-        rating = 'GOOD';
-        points = C.SCORE.GOOD;
-        color = C.COLORS.GOOD;
       } else {
-        rating = 'GOOD';
+        rating = '不错';
         points = C.SCORE.GOOD;
         color = C.COLORS.GOOD;
       }
       
-      // Apply combo bonus
       const comboBonus = Math.floor(points * gameState.combo * C.COMBO_MULTIPLIER);
       points += comboBonus;
       
-      gameState.addHit(rating, points);
+      gameState.addHit(rating === '完美' ? 'PERFECT' : rating === '太棒' ? 'GREAT' : 'GOOD', points);
       this.updateUI(rating, color);
       
-      // Play the sound
       playLaneSound(lane);
-      
-      // Visual feedback
       this.hitEffect(closestNote, color);
       
-      // Remove note
+      const glow = closestNote.getData('glow');
+      if (glow) glow.destroy();
       closestNote.destroy();
     } else {
-      // Pressed but no note - still make sound but smaller
+      // No note nearby - still play sound quietly
       playLaneSound(lane);
     }
   }
 
   hitEffect(note, color) {
-    // Burst effect
     const burst = this.add.circle(note.x, note.y, C.NOTE_RADIUS, color, 0.8);
     this.tweens.add({
       targets: burst,
-      scaleX: 2,
-      scaleY: 2,
+      scaleX: 2.5,
+      scaleY: 2.5,
       alpha: 0,
-      duration: 200,
+      duration: 300,
+      ease: 'Cubic.easeOut',
       onComplete: () => burst.destroy()
     });
   }
 
   updateUI(rating, color) {
-    // Update score
     this.scoreText.setText(gameState.score.toString());
     
-    // Update combo
     if (gameState.combo > 1) {
-      this.comboText.setText(`${gameState.combo}x COMBO`);
+      this.comboText.setText(`${gameState.combo}x 連擊`);
     } else {
       this.comboText.setText('');
     }
     
-    // Show rating
     this.ratingText.setText(rating);
     this.ratingText.setColor(Phaser.Display.Color.IntegerToColor(color).rgba);
     this.ratingText.setAlpha(1);
-    this.ratingText.setScale(1.2);
+    this.ratingText.setScale(1.3);
     
     this.tweens.add({
       targets: this.ratingText,
       alpha: 0,
       scaleX: 1,
       scaleY: 1,
-      duration: 300
+      y: C.HIT_ZONE_Y - 130,
+      duration: 400,
+      onComplete: () => {
+        this.ratingText.y = C.HIT_ZONE_Y - 100;
+      }
     });
   }
 
   update(time, delta) {
-    // Move notes down
     this.notes.getChildren().forEach(note => {
-      note.y += (C.NOTE_SPEED * delta) / 1000;
+      const glow = note.getData('glow');
       
-      // Check for miss
+      note.y += (C.NOTE_SPEED * delta) / 1000;
+      if (glow) glow.y = note.y;
+      
+      // Miss check
       if (note.y > C.HIT_ZONE_Y + C.TIMING.MISS && !note.getData('hit')) {
         note.setData('hit', true);
         gameState.addMiss();
         this.comboText.setText('');
         playMiss();
         
-        // Miss effect
-        note.setFillStyle(C.COLORS.MISS, 0.5);
+        note.setFillStyle(C.COLORS.MISS, 0.4);
+        if (glow) glow.destroy();
+        
         this.tweens.add({
           targets: note,
           alpha: 0,
-          duration: 200,
+          duration: 300,
           onComplete: () => note.destroy()
         });
       }
       
-      // Remove off-screen notes
       if (note.y > C.GAME_HEIGHT + 50) {
+        if (glow) glow.destroy();
         note.destroy();
       }
     });

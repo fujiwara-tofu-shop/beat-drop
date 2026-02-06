@@ -2,23 +2,24 @@
 export const GAME_WIDTH = 540;
 export const GAME_HEIGHT = 960;
 
-// Lanes
-export const LANE_COUNT = 4;
+// Lanes - 3 instead of 4
+export const LANE_COUNT = 3;
 export const LANE_WIDTH = GAME_WIDTH / LANE_COUNT;
-export const LANE_COLORS = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a855f7'];
-export const LANE_NAMES = ['KICK', 'SNARE', 'HAT', 'SYNTH'];
+export const LANE_COLORS = ['#ff6b9d', '#00d4aa', '#ffd93d']; // Pink, teal, gold
+export const LANE_NAMES = ['鼓', '钹', '筝']; // Drum, Cymbal, Guzheng
+export const LANE_NAMES_EN = ['DRUM', 'CYMBAL', 'ZHENG'];
 
 // Hit zone
-export const HIT_ZONE_Y = GAME_HEIGHT - 150;
-export const HIT_ZONE_HEIGHT = 80;
-export const NOTE_RADIUS = 35;
+export const HIT_ZONE_Y = GAME_HEIGHT - 180;
+export const HIT_ZONE_HEIGHT = 100;
+export const NOTE_RADIUS = 40;
 
-// Timing windows (in ms)
+// Timing windows (more forgiving)
 export const TIMING = {
-  PERFECT: 50,
-  GREAT: 100,
-  GOOD: 150,
-  MISS: 200
+  PERFECT: 80,
+  GREAT: 140,
+  GOOD: 200,
+  MISS: 260
 };
 
 // Scoring
@@ -29,28 +30,29 @@ export const SCORE = {
   MISS: 0
 };
 
-export const COMBO_MULTIPLIER = 0.1; // 10% bonus per combo
+export const COMBO_MULTIPLIER = 0.1;
 
-// Note spawning
-export const NOTE_SPEED = 400; // pixels per second
-export const SPAWN_Y = -50;
+// Note spawning - SLOWER
+export const NOTE_SPEED = 250; // Much slower
+export const SPAWN_Y = -60;
 
-// BPM and beat timing
-export const BPM = 120;
+// BPM - slower vibe
+export const BPM = 85;
 export const BEAT_MS = 60000 / BPM;
 
-// Colors
+// Colors - Chinese synthwave palette
 export const COLORS = {
-  BG: 0x0a0a0f,
-  HIT_ZONE: 0x1a1a2e,
-  HIT_ZONE_GLOW: 0x3a3a5e,
-  TEXT: 0xffffff,
-  COMBO: 0xffcc00,
-  PERFECT: 0x00ff88,
-  GREAT: 0x44ff44,
-  GOOD: 0xffff44,
-  MISS: 0xff4444
+  BG_TOP: 0x1a0a1e,
+  BG_BOTTOM: 0x0a1a2e,
+  HIT_ZONE: 0x2a1a3e,
+  HIT_ZONE_GLOW: 0xff6b9d,
+  TEXT: 0xffd93d,
+  COMBO: 0x00d4aa,
+  PERFECT: 0xff6b9d,
+  GREAT: 0x00d4aa,
+  GOOD: 0xffd93d,
+  MISS: 0x666666
 };
 
 // UI
-export const FONT_FAMILY = 'Arial Black, Arial, sans-serif';
+export const FONT_FAMILY = 'Georgia, serif';

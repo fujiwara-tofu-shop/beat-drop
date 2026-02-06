@@ -1,5 +1,4 @@
-// SFX using Web Audio API (one-shot sounds)
-// Following game-audio skill: Strudel is for looping BGM, Web Audio for SFX
+// Chinese Synthwave SFX using Web Audio API
 
 let audioCtx = null;
 
@@ -11,8 +10,8 @@ function getCtx() {
   return audioCtx;
 }
 
-// Kick - low sine with pitch drop
-export function playKick() {
+// Lane 0: Deep taiko-style drum
+export function playDrum() {
   const ctx = getCtx();
   const now = ctx.currentTime;
   
@@ -20,96 +19,96 @@ export function playKick() {
   const gain = ctx.createGain();
   
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(150, now);
-  osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+  osc.frequency.setValueAtTime(100, now);
+  osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
   
-  gain.gain.setValueAtTime(0.8, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+  gain.gain.setValueAtTime(0.7, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
   
   osc.connect(gain).connect(ctx.destination);
   osc.start(now);
-  osc.stop(now + 0.25);
+  osc.stop(now + 0.4);
+  
+  // Add a bit of body
+  const osc2 = ctx.createOscillator();
+  const gain2 = ctx.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.value = 80;
+  gain2.gain.setValueAtTime(0.3, now);
+  gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+  osc2.connect(gain2).connect(ctx.destination);
+  osc2.start(now);
+  osc2.stop(now + 0.2);
 }
 
-// Snare - noise burst
-export function playSnare() {
+// Lane 1: Shimmery cymbal/gong
+export function playCymbal() {
   const ctx = getCtx();
   const now = ctx.currentTime;
   
-  const bufferSize = ctx.sampleRate * 0.15;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.5);
-  }
+  // Metallic shimmer using multiple detuned oscillators
+  const freqs = [523, 587, 659, 784];
   
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'highpass';
-  filter.frequency.value = 1500;
-  
-  const gain = ctx.createGain();
-  gain.gain.value = 0.5;
-  
-  source.connect(filter).connect(gain).connect(ctx.destination);
-  source.start(now);
+  freqs.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    
+    osc.type = 'sine';
+    osc.frequency.value = freq * (1 + Math.random() * 0.02);
+    
+    filter.type = 'highpass';
+    filter.frequency.value = 2000;
+    
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    
+    osc.connect(filter).connect(gain).connect(ctx.destination);
+    osc.start(now + i * 0.01);
+    osc.stop(now + 0.5);
+  });
 }
 
-// Hi-hat - short noise burst
-export function playHat() {
+// Lane 2: Guzheng-style pluck (pentatonic)
+export function playZheng() {
   const ctx = getCtx();
   const now = ctx.currentTime;
   
-  const bufferSize = ctx.sampleRate * 0.04;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
-  }
-  
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'highpass';
-  filter.frequency.value = 8000;
-  
-  const gain = ctx.createGain();
-  gain.gain.value = 0.3;
-  
-  source.connect(filter).connect(gain).connect(ctx.destination);
-  source.start(now);
-}
-
-// Synth - bright arpeggio note
-export function playSynth() {
-  const ctx = getCtx();
-  const now = ctx.currentTime;
-  
-  const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+  // Pentatonic notes - A, C, D, E, G
+  const notes = [440, 523.25, 587.33, 659.25, 783.99];
   const freq = notes[Math.floor(Math.random() * notes.length)];
   
   const osc = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
   const gain = ctx.createGain();
   const filter = ctx.createBiquadFilter();
   
-  osc.type = 'square';
+  osc.type = 'triangle';
   osc.frequency.value = freq;
   
-  filter.type = 'lowpass';
-  filter.frequency.value = 2500;
+  osc2.type = 'sine';
+  osc2.frequency.value = freq * 2; // Octave harmonic
   
-  gain.gain.setValueAtTime(0.25, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(3000, now);
+  filter.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+  
+  gain.gain.setValueAtTime(0.35, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+  
+  const gain2 = ctx.createGain();
+  gain2.gain.value = 0.15;
   
   osc.connect(filter).connect(gain).connect(ctx.destination);
+  osc2.connect(gain2).connect(gain);
+  
   osc.start(now);
-  osc.stop(now + 0.2);
+  osc2.start(now);
+  osc.stop(now + 0.6);
+  osc2.stop(now + 0.6);
 }
 
-// Miss sound - low buzz
+// Miss sound - soft
 export function playMiss() {
   const ctx = getCtx();
   const now = ctx.currentTime;
@@ -117,10 +116,10 @@ export function playMiss() {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   
-  osc.type = 'sawtooth';
-  osc.frequency.value = 80;
+  osc.type = 'sine';
+  osc.frequency.value = 150;
   
-  gain.gain.setValueAtTime(0.15, now);
+  gain.gain.setValueAtTime(0.1, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
   
   osc.connect(gain).connect(ctx.destination);
@@ -131,9 +130,8 @@ export function playMiss() {
 // Map lane index to sound
 export function playLaneSound(lane) {
   switch (lane) {
-    case 0: playKick(); break;
-    case 1: playSnare(); break;
-    case 2: playHat(); break;
-    case 3: playSynth(); break;
+    case 0: playDrum(); break;
+    case 1: playCymbal(); break;
+    case 2: playZheng(); break;
   }
 }
